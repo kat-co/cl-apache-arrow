@@ -1,0 +1,67 @@
+#+AUTHOR: Katherine Cox-Buday <cox.katherine.e@gmail.com>
+
+* About
+
+This is a library for working with Apache [[https://arrow.apache.org/][Arrow]] and [[https://parquet.apache.org/][Parquet]] data. It is a wrapper around the official Apache [[https://github.com/apache/arrow/tree/master/c_glib][GLib library]] using [[https://gi.readthedocs.io/en/latest/index.html][GObject Introspection]], which in turn is a wrapper around the C++ library.
+
+This system is split into two levels: the low-level code which is almost a 1:1 mapping from the underlying library, and the high-level code which provides a idiomatic Common Lisp API.
+
+There are also some caveats:
+
+1. The code has only been tested on Linux with SBCL. It is intended to be tested with other Lisp implementations.
+2. The generated code has not been tested very broadly, nor deeply.
+3. There are no unit tests written yet.
+
+* Installation
+
+I plan to get this into quicklisp. For now, please clone the directory, make ASDF aware of its location, and run =(asdf:load-system :cl-apache-arrow)=.
+
+This library utilizes [[https://github.com/andy128k/cl-gobject-introspection][cl-gobject-introspection]]. The Arrow and Parquet =.gir= files must be in the search path reported by =(gir:repository-get-search-path)=. If they are not, you can prepend their path(s) via =(gir:repository-prepend-search-path "my-path/")=.
+
+This library also utilizes =libgobject= and =libarrow= which must be on your CFFI search path. If they are not, you can prepend their path(s) via =(pushnew "path/to/lib" cffi:*foreign-library-directories*)=.
+
+* How to Work with the Sourcecode
+
+The low-level code is generated with [[https://github.com/kat-co/gir2cl][gir2cl]] and should not be edited by hand.
+
+* How to Utilize the Library
+
+The high-level portion of the code is currently centered around streamlining writing out Parquet files based on CLOS definitions. A metaclass, =entity-class= is provided which, when used, will allow you to specify =:arrow-type= and =:arrow-field-name= on CLOS classes.
+
+A function, =schema-from-object=, is also provided which, when passed an instance of this class, will return an Arrow schema, field builders for the schema, and a function for populating the field builders with CLOS objects.
+
+=schema-from-object= takes in an optional keyword parameter, =:schema=. This takes in a very small DSL specifed in terms of lists. You can specify which columns to include in the schema: ='(foo bar)=, you can specify some of the fields, and a wildcard for the rest: ='(foo *)=, and you can specify lists of nested structures: ='(foo ("my-name" bar *))=. The wildcard will expand into field-names which have not already been requested.
+
+Here is a complete example:
+
+#+BEGIN_SRC common-lisp
+  (defclass my-class ()
+    ((foo :initarg :foo
+          :type string
+          ;; This must be an instance of one of the GIR Arrow data
+          ;; types. You can find functions to make these in the
+          ;; arrow-low-level package.
+          :arrow-type (arrow-low-level:make-string-data-type-new)
+          ;; This will be used as the Arrow field's name.
+          :arrow-field-name "foo"))
+
+    (:metaclass arrow:entity-class))
+
+  (let ((fake-entities (loop repeat 10
+                             collect (make-instance 'my-class
+                                                    :foo (format nil "~a" (gensym))))))
+
+    (multiple-value-bind (schema field-builders add-obj)
+        (arrow:schema-from-object
+         (car fake-entities))
+
+      (format t "~%Schema:~%~a~%" (arrow-low-level:arrow-schema-to-string schema))
+
+      (arrow:with-field-builders (field-builders)
+        (loop for e in fake-entities do (funcall add-obj e)))
+
+      (parquet:with-open-file-writer (writer schema "/tmp/yay.parquet")
+        (parquet::write-table writer schema field-builders 10))))
+#+END_SRC
+
+If you don't want this functionality, you can always utilize the lower level Arrow and Parquet functionality.
