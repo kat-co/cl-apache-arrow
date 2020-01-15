@@ -10,10 +10,10 @@
   :components ((:module "src"
                 :components
                 ((:file "package")
-               (:file "arrow-low-level")
-               (:file "parquet-low-level")
-               (:file "arrow")
-               (:file "parquet")
+                 (:file "arrow-low-level")
+                 (:file "parquet-low-level")
+                 (:file "arrow")
+                 (:file "parquet")
                  (:file "utils"))))
   :in-order-to ((test-op (test-op "cl-apache-arrow/tests"))))
 

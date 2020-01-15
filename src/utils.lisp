@@ -47,26 +47,26 @@ builders."
       (let ((schema (make-arrow-schema-new (g-list field-list))))
         (values
          schema
-              schema-field-builders
-              (lambda (obj*)
-                "Populates field builders from slots of a CLOS object."
+         schema-field-builders
+         (lambda (obj*)
+           "Populates field builders from slots of a CLOS object."
 
-                (labels ((iterate (slots builders)
-                           (when builders
-                             (let ((builder (car builders))
-                                   (slot (car slots)))
-                               (if (typep builder 'list-array-builder)
-                                   (progn
-                                     (append-value builder)
-                                     (iterate slots (cdr builders)))
+           (labels ((iterate (slots builders)
+                      (when builders
+                        (let ((builder (car builders))
+                              (slot (car slots)))
+                          (if (typep builder 'list-array-builder)
+                              (progn
+                                (append-value builder)
+                                (iterate slots (cdr builders)))
 
-                                   (let ((slot-value (and (slot-boundp obj* slot)
-                                                          (slot-value obj* slot))))
-                                     (if slot-value
-                                         (append-value builder slot-value)
-                                         (append-null builder))
+                              (let ((slot-value (and (slot-boundp obj* slot)
+                                                     (slot-value obj* slot))))
+                                (if slot-value
+                                    (append-value builder slot-value)
+                                    (append-null builder))
 
-                                     (iterate (cdr slots) (cdr builders))))))))
+                                (iterate (cdr slots) (cdr builders))))))))
 
              (iterate class-slots field-builders))))))))
 
@@ -121,14 +121,14 @@ of fields, and a list of class slots."
                             schema-place class))
 
                    (let* ((arrow-type (arrow-type-from-slot slot))
-                        (field (make-field-new (arrow-field-name slot)
-                                               (native-pointer arrow-type))))
+                          (field (make-field-new (arrow-field-name slot)
+                                                 (native-pointer arrow-type))))
 
                      (prepend-field fields field)
-                   (setf
-                    field-builders (cons (data-type-array-builder arrow-type)
-                                         field-builders)
-                    schema-field-builders (cons (car field-builders) schema-field-builders)
+                     (setf
+                      field-builders (cons (data-type-array-builder arrow-type)
+                                           field-builders)
+                      schema-field-builders (cons (car field-builders) schema-field-builders)
                       class-slots (cons schema-place class-slots)))))))
 
     (values schema-field-builders field-builders fields class-slots)))
