@@ -596,7 +596,12 @@
            entity-class
            entity-slot-definition
            arrow-field-name
-           with-field-builders))
+           with-field-builders
+           field-list
+           prepend-field
+           concat
+           lisp-list
+           g-list))
 
 (defpackage #:parquet
   (:use #:cl)
