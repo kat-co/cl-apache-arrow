@@ -44,12 +44,9 @@ builders."
     (multiple-value-bind (schema-field-builders field-builders field-list class-slots)
         (fields-from-class (class-of obj) clos-class-slots schema)
 
-      (setf field-builders (reverse field-builders)
-            class-slots (reverse class-slots))
-
-      (setf schema-field-builders (reverse schema-field-builders))
-
-      (values (make-arrow-schema-new field-list)
+      (let ((schema (make-arrow-schema-new (g-list field-list))))
+        (values
+         schema
               schema-field-builders
               (lambda (obj*)
                 "Populates field builders from slots of a CLOS object."
@@ -71,7 +68,7 @@ builders."
 
                                      (iterate (cdr slots) (cdr builders))))))))
 
-                  (iterate class-slots field-builders)))))))
+             (iterate class-slots field-builders))))))))
 
 ;;; Unexported
 
@@ -88,7 +85,7 @@ of fields, and a list of class slots."
          (field-builders (list))
          (schema-field-builders (list))
          (class-slots (list))
-         (fields (cffi:null-pointer)))
+         (fields (make-instance 'field-list)))
 
     (loop
       for schema-place in schema
@@ -96,25 +93,25 @@ of fields, and a list of class slots."
              ;; We are requesting a nested structure. The first item
              ;; in the list is the name of the nested structure in its
              ;; parent list.
-             (multiple-value-bind (struct-field-builder field-builders* fields* class-slots*)
+             (multiple-value-bind (struct-field-builder field-builders* field class-slots*)
                  (nest-struct class clos-class-slots
                               (car schema-place) (cdr schema-place) wildcard-slots)
 
+               (prepend-field fields field)
                (setf field-builders (append field-builders field-builders*)
                      schema-field-builders (append schema-field-builders (list struct-field-builder))
-                     fields (g-list-append fields fields*)
                      class-slots (append class-slots class-slots*)))
 
              (if (eq '* schema-place)
                  ;; Replace the star with all the slots not explicitly
                  ;; defined.
-                 (multiple-value-bind (schema-field-builders* field-builders* fields* class-slots*)
+                 (multiple-value-bind (schema-field-builders* field-builders* fields* class-slots* lisp-fields*)
                      (fields-from-class class clos-class-slots wildcard-slots wildcard-slots)
 
-                   (setf field-builders (append field-builders field-builders*)
+                   (setf field-builders (append field-builders* field-builders)
                          schema-field-builders (append schema-field-builders* schema-field-builders)
-                         fields (g-list-concat fields fields*)
-                         class-slots (append class-slots class-slots*)))
+                         class-slots (append class-slots* class-slots)
+                         fields (concat fields* fields)))
 
                  ;; Otherwise add bits for the requested slot.
                  (let ((slot (find-slot-definition clos-class-slots schema-place)))
@@ -127,12 +124,12 @@ of fields, and a list of class slots."
                         (field (make-field-new (arrow-field-name slot)
                                                (native-pointer arrow-type))))
 
+                     (prepend-field fields field)
                    (setf
                     field-builders (cons (data-type-array-builder arrow-type)
                                          field-builders)
                     schema-field-builders (cons (car field-builders) schema-field-builders)
-                    class-slots (cons schema-place class-slots)
-                      fields (g-list-append fields (gir::this-of (native-pointer field)))))))))
+                      class-slots (cons schema-place class-slots)))))))
 
     (values schema-field-builders field-builders fields class-slots)))
 
@@ -155,7 +152,7 @@ of fields, and a list of class slots."
       (values
        list-builder
        (cons list-builder field-builders)
-       (gir::this-of (native-pointer list-field))
+       list-field
        class-slots))))
 
 (defun slot-definitions-difference (slot-definitions exclusions)
