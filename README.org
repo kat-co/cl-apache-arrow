@@ -62,8 +62,13 @@ Here is a complete example:
       (arrow:with-field-builders (field-builders)
         (loop for e in fake-entities do (funcall add-obj e)))
 
-      (parquet:with-open-file-writer (writer schema "/tmp/yay.parquet")
-        (parquet::write-table writer schema field-builders 10))))
+      (let ((writer-properties (parquet-low-level:make-parquet-writer-properties-new)))
+        (parquet-low-level:parquet-writer-properties-set-compression
+         writer-properties
+         arrow-low-level:*compression-type-snappy*
+         nil)
+        (parquet:with-open-file-writer (writer schema "/tmp/yay.parquet")
+          (parquet:write-table writer schema field-builders 10)))))
 #+END_SRC
 
 If you don't want this functionality, you can always utilize the lower level Arrow and Parquet functionality.

@@ -43,7 +43,9 @@
     (with-slots (native-pointer)
         array-builder
       (if value
-          (gir:invoke (native-pointer "append_value") value)
+          (if (stringp value)
+              (gir:invoke (native-pointer "append_string") value)
+              (gir:invoke (native-pointer "append_value") value))
           (gir:invoke (native-pointer "append_value"))))))
 
 

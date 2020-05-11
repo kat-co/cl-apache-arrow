@@ -7,9 +7,10 @@
                                                      (arrow-low-level:native-pointer table)
                                                      batch-size)))
 
-(defmacro with-open-file-writer ((writer schema path) &body body)
+(defmacro with-open-file-writer ((writer writer-properties schema path) &body body)
   `(let ((,writer (parquet-low-level:make-arrow-file-writer-new-path
-                   (arrow-low-level:native-pointer ,schema) ,path)))
+                   (arrow-low-level:native-pointer ,schema) ,path
+                   (parquet-low-level:native-pointer ,writer-properties))))
      (unwind-protect
           ,@body
        (parquet-low-level:arrow-file-writer-close ,writer))))

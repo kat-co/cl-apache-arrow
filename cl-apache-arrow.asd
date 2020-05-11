@@ -1,8 +1,8 @@
 (asdf:defsystem #:cl-apache-arrow
-  :description "Describe cl-apache-arrow here"
+  :description "A wrapper around Apache Arrow's C++ library."
   :author "Katherine Cox-Buday <cox.katherine.e@gmail.com>"
   :license  "Apache-2.0"
-  :version "0.0.2"
+  :version "1.0.0"
   :depends-on (cl-gobject-introspection
                closer-mop
                trivial-garbage)
@@ -25,5 +25,6 @@
                "rove")
   :components ((:module "src"
                 :components
-                ((:file "utils-test"))))
+                ((:file "utils-test")
+                 (:file "arrow-test"))))
   :perform (test-op (op c) (symbol-call :rove :run c)))

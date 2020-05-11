@@ -13,10 +13,12 @@
 (defclass entity-class (closer-mop:standard-class) ())
 
 (defmethod closer-mop:validate-superclass ((class entity-class)
-                                           (super closer-mop:standard-class)) t)
+                                           (super closer-mop:standard-class))
+  t)
 
 (defmethod closer-mop:validate-superclass ((class standard-class)
-                                           (super entity-class)) t)
+                                           (super entity-class))
+  t)
 
 (defmethod closer-mop:direct-slot-definition-class ((class entity-class)
                                                     &rest initargs)
@@ -142,7 +144,7 @@ of fields, and a list of class slots."
       (fields-from-class class clos-class-slots schema w)
     (declare (ignore schema-field-builders))
 
-    (let* ((struct-type (make-struct-data-type-new fields))
+    (let* ((struct-type (make-struct-data-type-new (g-list fields)))
            (inner-list-field (make-field-new "element" (native-pointer struct-type)))
            (inner-list-type (make-list-data-type-new (native-pointer inner-list-field)))
 
@@ -212,40 +214,3 @@ definition of a CLOS object with a meta-object of entity-class."
     (uint32data-type (make-uint32array-builder-new))
     (uint64data-type (make-uint64array-builder-new))
     (uint8data-type (make-uint8array-builder-new))))
-
-;; (defun arrow-data-type-from-lisp (type-specifier)
-;;   "Returns an Arrow DataType from a type Lisp type specifier."
-
-;;   (cond
-;;     ((eq type-specifier 'null) (make-arrow-null-data-type-new))
-;;     ;;(? (make-arrow-binary-data-type-new))
-;;     ;;(? (make-arrow-date32data-type-new))
-;;     ;;(? (make-arrow-date64data-type-new))
-;;     ;;(? (make-arrow-decimal128data-type-new))
-;;     ;;(decimal (make-arrow-decimal-data-type-new))
-;;     ;;(? (make-arrow-dense-union-data-type-new))
-;;     ;;(hash-table (make-arrow-dictionary-data-type-new ()))
-
-;;     ((eq type-specifier 'boolean) (make-arrow-boolean-data-type-new))
-;;     ;;(? (make-arrow-fixed-size-binary-data-type-new))
-
-;;     ((eq type-specifier 'double-float) (make-arrow-double-data-type-new))
-;;     ((eq type-specifier 'float) (make-arrow-float-data-type-new))
-;;     ;;(list (make-arrow-list-data-type-new))
-;;     ;;(? (make-arrow-sparse-union-data-type-new))
-
-;;     ((eq type-specifier 'string) (make-arrow-string-data-type-new))
-;;     ;; (? (make-arrow-struct-data-type-new))
-;;     ;; (? (make-arrow-time32data-type-new))
-;;     ;; (? (make-arrow-time64data-type-new))
-;;     ;; (? (make-arrow-timestamp-data-type-new))
-
-;;     ((equalp type-specifier '(unsigned-byte 8)) (make-arrow-uint8data-type-new))
-;;     ((equalp type-specifier '(unsigned-byte 16)) (make-arrow-uint16data-type-new))
-;;     ((equalp type-specifier '(unsigned-byte 32)) (make-arrow-uint32data-type-new))
-;;     ((equalp type-specifier '(unsigned-byte 64)) (make-arrow-uint64data-type-new))
-;;     ((equalp type-specifier '(signed-byte 8)) (make-arrow-int8data-type-new))
-;;     ((equalp type-specifier '(signed-byte 16)) (make-arrow-int16data-type-new))
-;;     ((equalp type-specifier '(signed-byte 32)) (make-arrow-int32data-type-new))
-;;     ((equalp type-specifier '(signed-byte 64)) (make-arrow-int64data-type-new))
-;;     (t (error "Cannot match type specifier \"~s\" to an Arrow type." type-specifier))))
