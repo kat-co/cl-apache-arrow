@@ -22,7 +22,7 @@ This library also utilizes =libgobject= and =libarrow= which must be on your CFF
 
 * How to Work with the Sourcecode
 
-The low-level code is generated with [[https://github.com/kat-co/gir2cl][gir2cl]] and should not be edited by hand.
+The low-level code is generated with [[https://github.com/kat-co/gir2cl][gir2cl]] and should not be edited by hand. To regenerate these files, you can run =make generate= while in the root of the source tree. This requires that =gir2cl= is in a location ASDF can find it, and that libgobject is in a place where CFFI can find it.
 
 For tests, I'm experimenting with the [[https://golang.org][Go]] style of tests where the test files are alongside the source files and appended with ~-test~. The tests are still in a different system and can be run with =(asdf:test-system :cl-apache-arrow)=.
 
