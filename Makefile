@@ -13,7 +13,7 @@ src/arrow-low-level.lisp : $(ARROW_GIR) build-scripts/generate-low-level.lisp
 		--load $(word 2,$^)
 
 .PHONY : src/parquet-low-level.lisp
-src/parquet-low-level.lisp : PARQUET_GIR ?= /usr/share/gir-1.0/Parquet-1.0.gir
+PARQUET_GIR ?= /usr/share/gir-1.0/Parquet-1.0.gir
 src/parquet-low-level.lisp : $(PARQUET_GIR) build-scripts/generate-low-level.lisp
 	$(SBCL) --eval '(defparameter *generated-file* "$@")'\
 		--eval '(defparameter *gir-file* #P"$<")'\
